@@ -27,19 +27,6 @@ public class JavaAnimals {
     ArrayList <cAnimal> cAnimals = new ArrayList <cAnimal> (); // динамический массив всех животных
 
     /**
-     * записываем атрибуты животного из aAttr в динамический массив
-     * @param aAttr - массив с атрибутами животного
-     */
-        void InsertIntoCollection (String [] aAttr){
-            
-              cAnimal curAni = new cAnimal();
-              curAni.propAni.addAll(Arrays.asList(aAttr));
-              // сохраняем экземпляр животного в коллекции всех животных
-              cAnimals.add(curAni);
-            
-        }
-    
-    /**
      * читает исходный файл с атрибутами животных и сохраняет его в коллекции
      * @param sFile - исходный файл
      */
@@ -61,6 +48,50 @@ public class JavaAnimals {
         } catch (IOException ex) {
             Logger.getLogger(JavaAnimals.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    /**
+     * записываем атрибуты животного из aAttr в динамический массив
+     * @param aAttr - массив с атрибутами животного
+     */
+        void InsertIntoCollection (String [] aAttr){
+            
+              cAnimal curAni = new cAnimal();
+              curAni.propAni.addAll(Arrays.asList(aAttr));
+              // сохраняем экземпляр животного в коллекции всех животных
+              cAnimals.add(curAni);
+            
+        }
+    
+    /**
+     * читает файл с правилами и выполняет их по одному (одна строка - одно правило)
+     * атрибуты с функцией "и" разделяются запятой
+     * несколько атрибутов могут объединняться функцией "или" (|} 
+     * для отрицания атрибута используется символ "^"
+     */
+    void ReadRules (String sFile){
+            String txtLine;
+        System.out.println(sFile);
+        try {
+            File fIn = new File(sFile);
+            BufferedReader inputVar = Files.newBufferedReader(fIn.toPath(), Charset.forName("Cp1251")); 
+            
+            txtLine = inputVar.readLine();          // читаем очередную строку с правилом
+            while(txtLine != null){
+              System.out.println("Правило = " + txtLine); 
+              String [] aAttr = txtLine.split(","); // получаем массив атрибутов необходимых для выборки животных
+              
+              int cnt; 
+              cnt = Calculate (aAttr);              // подсчет животных с нужными атрибутами
+              
+              System.out.println ("Количество=" + cnt);
+              txtLine = inputVar.readLine();        // читаем очередную строку с правилом 
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(JavaAnimals.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(JavaAnimals.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
     }
     /**
      * Просматривает файл с животными и сразу ведет подсчет на основании файла с правилами
@@ -113,22 +144,6 @@ public class JavaAnimals {
           return sOut;
         }
     /**
-     * выводит всю коллекцию на экран
-     */
-    void DisplayAll (ArrayList <cAnimal> cAni){
-        for (int i =0;i<cAni.size();i++) {
-           cAnimal sAni = cAni.get(i); 
-           Display (sAni);
-        }
-    }
-        void Display (cAnimal cAni){
-//           System.out.println("----------------");
-           for (int j=0;j<cAni.propAni.size();j++){
-               System.out.print(cAni.propAni.get(j)+" ");
-           }
-           System.out.println();
-    }
-    /**
      * подсчитывает количество животных в коллекции, удовлетворяющих правилу из aAttr
      * @param aAttr - правило в виде массива конъюнкций лексем
      * @return - количество животных, удовлетворяющих данному правилу
@@ -147,37 +162,6 @@ public class JavaAnimals {
                 }                                
               }
             return cnt;
-    }
-    /**
-     * читает файл с правилами и выполняет их по одному (одна строка - одно правило)
-     * атрибуты с функцией "и" разделяются запятой
-     * несколько атрибутов могут объединняться функцией "или" (|} 
-     * для отрицания атрибута используется символ "^"
-     */
-    void ReadRules (String sFile){
-            String txtLine;
-        System.out.println(sFile);
-        try {
-            File fIn = new File(sFile);
-            BufferedReader inputVar = Files.newBufferedReader(fIn.toPath(), Charset.forName("Cp1251")); 
-            
-            txtLine = inputVar.readLine();          // читаем очередную строку с правилом
-            while(txtLine != null){
-              System.out.println("Правило = " + txtLine); 
-              String [] aAttr = txtLine.split(","); // получаем массив атрибутов необходимых для выборки животных
-              
-              int cnt; 
-              cnt = Calculate (aAttr);              // подсчет животных с нужными атрибутами
-              
-              System.out.println ("Количество=" + cnt);
-              txtLine = inputVar.readLine();        // читаем очередную строку с правилом 
-            }
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(JavaAnimals.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(JavaAnimals.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
     }
     /**
      * Поиск лексемы в атрибутах конкретного животного
@@ -220,6 +204,22 @@ public class JavaAnimals {
                 }
         }
         return isExist;
+    }
+    /**
+     * выводит всю коллекцию на экран
+     */
+    void DisplayAll (ArrayList <cAnimal> cAni){
+        for (int i =0;i<cAni.size();i++) {
+           cAnimal sAni = cAni.get(i); 
+           Display (sAni);
+        }
+    }
+        void Display (cAnimal cAni){
+//           System.out.println("----------------");
+           for (int j=0;j<cAni.propAni.size();j++){
+               System.out.print(cAni.propAni.get(j)+" ");
+           }
+           System.out.println();
     }
     /**
      * @param args the command line arguments
