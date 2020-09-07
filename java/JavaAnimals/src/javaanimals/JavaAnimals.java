@@ -227,7 +227,7 @@ public class JavaAnimals {
      * args[1] - файл с правилами (одна строка - одно правило, лексемы внутри строки разделяются запятыми)
      */
     public static void main(String[] args) {
-       if(args.length==0) System.out.println ("Задайте имя входного файла и имя файла правила");
+       if(args.length==0) System.out.println ("Задайте имя входного файла и имя файла с правилпми");
        else {
            JavaAnimals cAnimal = new JavaAnimals ();
             cAnimal.ReadAllAnimals (args[0]);   // чтение коллекции животных
