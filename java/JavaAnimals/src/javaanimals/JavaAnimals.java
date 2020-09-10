@@ -107,7 +107,6 @@ public class JavaAnimals {
             boolean isAttrExist=false;
             for (int i=0;i<ArrayRules.size();i++) {                     // выбираем нормализованное "подправило" без скобок
                 String sRule = (String)ArrayRules.get(i);
-                System.out.println (sRule);
                 String [] aAttr = sRule.split(",");                     // получаем из "подправила" массив лексем, необходимых для выборки животных
                 for (String sAttr : aAttr) {
                     isAttrExist = ExecuteRule(sAttr, selectedAnimal);   // сравнение очередной лексемы с атрибутами животного
@@ -115,8 +114,8 @@ public class JavaAnimals {
                 }
                 if (isAttrExist) {
                     cnt++;                                              
-                    Display (selectedAnimal);
-                    break;
+                    Display (selectedAnimal);   
+                    break;                                              // совпали все лексемы хотя бы из одного подправила
                 }                                
             }
          }
