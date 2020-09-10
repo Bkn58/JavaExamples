@@ -12,19 +12,20 @@ import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
  * @author Bkn
  */
 public class JavaAnimals {
+    
     public class cAnimal {
-     ArrayList <String> propAni = new ArrayList <String> (); // динамический массив свойств одного животного
+     ArrayList <String> propAni = new ArrayList <String> ();    // динамический массив свойств одного животного
     } 
-    /**
-     *  динамический массив всех животных
-     */
-    ArrayList <cAnimal> cAnimals = new ArrayList <cAnimal> (); // динамический массив всех животных
+    
+    ArrayList <cAnimal> cAnimals = new ArrayList <cAnimal> ();  // динамический массив всех животных
 
     /**
      * читает исходный файл с атрибутами животных и сохраняет его в коллекции
@@ -65,33 +66,93 @@ public class JavaAnimals {
     /**
      * читает файл с правилами и выполняет их по одному (одна строка - одно правило)
      * атрибуты с функцией "и" разделяются запятой
-     * несколько атрибутов могут объединняться функцией "или" (|} 
+     * несколько атрибутов могут объединяться функцией "или" (|} 
      * для отрицания атрибута используется символ "^"
      */
-    void ReadRules (String sFile){
+    void ReadRules (BufferedReader inputVar){
             String txtLine;
-        System.out.println(sFile);
         try {
-            File fIn = new File(sFile);
-            BufferedReader inputVar = Files.newBufferedReader(fIn.toPath(), Charset.forName("Cp1251")); 
             
-            txtLine = inputVar.readLine();          // читаем очередную строку с правилом
+            txtLine = inputVar.readLine();             // читаем очередную строку с правилом
             while(txtLine != null){
               System.out.println("Правило = " + txtLine); 
-              String [] aAttr = txtLine.split(","); // получаем массив атрибутов необходимых для выборки животных
+              
               
               int cnt; 
-              cnt = Calculate (aAttr);              // подсчет животных с нужными атрибутами
+              cnt = Calculate (txtLine);              // подсчет животных с нужными атрибутами
               
               System.out.println ("Количество=" + cnt);
-              txtLine = inputVar.readLine();        // читаем очередную строку с правилом 
+              txtLine = inputVar.readLine();          // читаем очередную строку с правилом 
             }
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(JavaAnimals.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
+        } 
+        catch (IOException ex) {
             Logger.getLogger(JavaAnimals.class.getName()).log(Level.SEVERE, null, ex);
         }
         
+    }
+    /**
+     * подсчитывает количество животных в коллекции, удовлетворяющих правилу из aAttr
+     * @param txtRules - ненормализованное правило, состоящее из лексем вида: 
+     * (лексема1,лексема2,лексема3|лексема4)|(лексема5,^лексема6).....
+     * лексемы, перечисленные через запятую, являются конъюнкцией
+     * лексемы, перечисленные через знак "|", являются дизъюнкцией
+     * знак "^" перед лексемой - отрицание
+     * лексемы внутри скобок - "подправило", скобки соединяются в дизъюнкцию символом "|"
+     * @return - cnt количество животных, удовлетворяющих входному правилу
+     */
+        int Calculate (String txtRules) {
+        int cnt=0; 
+        ArrayList ArrayRules = doNormalization (txtRules);
+        for (cAnimal selectedAnimal : cAnimals) {                       // перебираем всех животных из коллекции
+            boolean isAttrExist=false;
+            for (int i=0;i<ArrayRules.size();i++) {                     // выбираем нормализованное "подправило" без скобок
+                String sRule = (String)ArrayRules.get(i);
+                System.out.println (sRule);
+                String [] aAttr = sRule.split(",");                     // получаем из "подправила" массив лексем, необходимых для выборки животных
+                for (String sAttr : aAttr) {
+                    isAttrExist = ExecuteRule(sAttr, selectedAnimal);   // сравнение очередной лексемы с атрибутами животного
+                    if (!isAttrExist) break;                            // если лексемы нет среди атрибутов - прекращаем просмотр других лексем этого "подправила"
+                }
+                if (isAttrExist) {
+                    cnt++;                                              
+                    Display (selectedAnimal);
+                    break;
+                }                                
+            }
+         }
+            return cnt;
+    }
+    
+    /**
+     * Нормализует входную строку.
+     * ищет скобки, разделенные знаком "|" или без него и представляет результирующую последовательность
+     * в виде массива строк "подправил" без скобок.
+     * @param inRule - входная строка
+     * @return outSubRules - массив выходных строк "подправил"
+     */
+    
+    ArrayList doNormalization (String inRule) {
+        ArrayList outSubRules = new ArrayList();
+        
+                String strPattern = "[(].+?[)]";
+                boolean hasBrackets = inRule.matches(strPattern);
+                if (hasBrackets){
+                    // ищем парные скобки
+                    Pattern patBrackets = Pattern.compile(strPattern); 
+                    Matcher matBrackets = patBrackets.matcher(inRule);
+                    while (matBrackets.find()) {
+                        int start = matBrackets.start()+1;
+                        int end   = matBrackets.end()-1;
+                        if (start!=end) outSubRules.add(inRule.substring(start, end));// записываем содержимое парных скобок в результат
+                     }
+                }
+                else {
+                    // парных скобок не обнаружено
+                    outSubRules.add(inRule);
+                }
+
+        
+        return outSubRules;
     }
     /**
      * Просматривает файл с животными и сразу ведет подсчет на основании файла с правилами
@@ -114,7 +175,7 @@ public class JavaAnimals {
             inputAnimals = Files.newBufferedReader(fInAnmals.toPath(), Charset.forName("Cp1251"));
             while(txtLineRule != null){
                 int cnt = 0;  
-                String [] sAttrRule  = txtLineRule.split(",");   // получаем массив атрибутов необходимых для выборки животных;
+                String [] sAttrRule  = txtLineRule.split(",");              // получаем массив атрибутов необходимых для выборки животных;
                 txtLineAni = inputAnimals.readLine();
                     while(txtLineAni != null){                              // читаем из потока животных
                         String [] sAttrAni  = txtLineAni.split(",");        // получаем массив атрибутов животных
@@ -143,26 +204,6 @@ public class JavaAnimals {
         }
           return sOut;
         }
-    /**
-     * подсчитывает количество животных в коллекции, удовлетворяющих правилу из aAttr
-     * @param aAttr - правило в виде массива конъюнкций лексем
-     * @return - количество животных, удовлетворяющих данному правилу
-     */
-        int Calculate (String [] aAttr) {
-        int cnt=0; // счетчик животных с нужными атрибутами
-            for (cAnimal selectedAnimal : cAnimals) {                   // перебор всех животных из коллекции
-                boolean isExist=false;
-                for (int i=0;i<aAttr.length;i++){
-                    isExist = ExecuteRule (aAttr[i],selectedAnimal);   // исполнение лексемы над результирующим массивом
-                    if (!isExist) {break;}                             // если лексема есть среди атрибутов - продолжаем цикл по лексемам
-                    }
-                if (isExist) {
-                    cnt++;                                              // если все лексемы присутствуют в атрибутах животного - наращиваем счетчик
-//                        Display (selectedAnimal);
-                }                                
-              }
-            return cnt;
-    }
     /**
      * Поиск лексемы в атрибутах конкретного животного
      * @param sRule - текущая лексема текущего правила
@@ -231,9 +272,17 @@ public class JavaAnimals {
        else {
            JavaAnimals cAnimal = new JavaAnimals ();
             cAnimal.ReadAllAnimals (args[0]);   // чтение коллекции животных
-            cAnimal.ReadRules (args[1]);        // чтение и исполнение правил
+            File fIn = new File(args[1]);
+           try (BufferedReader inputVar = Files.newBufferedReader(fIn.toPath(), Charset.forName("Cp1251"));)
+           { 
+               cAnimal.ReadRules (inputVar);        // чтение и исполнение правил
+           } catch (IOException ex) {
+               Logger.getLogger(JavaAnimals.class.getName()).log(Level.SEVERE, null, ex);
+           }
             
-            System.out.println (cAnimal.ReadAniFromStream (args[0],args[1])); // чтение из потока животных без записи в коллекцию и подсчет правил "на лету"
+
+            
+//            System.out.println (cAnimal.ReadAniFromStream (args[0],args[1])); // чтение из потока животных без записи в коллекцию и подсчет правил "на лету"
        }
     }
     
