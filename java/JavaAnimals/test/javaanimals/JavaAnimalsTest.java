@@ -5,8 +5,15 @@
  */
 package javaanimals;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -55,11 +62,18 @@ public class JavaAnimalsTest {
     @Test
     public void testReadRules() {
         System.out.println("ReadRules");
-        String sFile1 = "src\\javaanimals\\animals.txt";
-        String sFile = "src\\javaanimals\\rules.txt";
+        String sFile1 = "test\\animals.txt";
+        String sFile = "test\\rules.txt";
         JavaAnimals instance = new JavaAnimals();
         instance.ReadAllAnimals(sFile1);
-        instance.ReadRules(sFile);
+            File fIn = new File(sFile);
+           try (BufferedReader inputVar = Files.newBufferedReader(fIn.toPath(), Charset.forName("Cp1251"));)
+           { 
+               instance.ReadRules (inputVar);        // чтение и исполнение правил
+           } catch (IOException ex) {
+               Logger.getLogger(JavaAnimals.class.getName()).log(Level.SEVERE, null, ex);
+           }
+        
         // TODO review the generated test code and remove the default call to fail.
         //fail("The test case is a prototype.");
     }
@@ -71,7 +85,7 @@ public class JavaAnimalsTest {
         int result;
         int expResult;
              
-        String [] sRule = {"травоядное|плотоядное","маленькое"};
+        String sRule = "травоядное|плотоядное,маленькое";
               // записываем атрибуты животных в динамический массив
         String [] aAttr = {"курица", "травоядное", "маленькое", "легкое"}; 
         instance.InsertIntoCollection(aAttr);
@@ -90,21 +104,25 @@ public class JavaAnimalsTest {
         String [] aAttr7 = {"корова","травоядное","невысокое","тяжелое","желтое"}; 
         instance.InsertIntoCollection(aAttr7);
         
-        instance.DisplayAll(instance.cAnimals);
-        
         expResult = 2;
         result = instance.Calculate(sRule);
         assertEquals(expResult, result);
 
-        String [] sRule1 = {"травоядное"};
+        String sRule1 = "травоядное";
         expResult = 4;
         result = instance.Calculate(sRule1);
         assertEquals(expResult, result);
 
-        String [] sRule2 = {"всеядное","^высокое"};
+        String sRule2 = "всеядное,^высокое";
         expResult = 2;
         result = instance.Calculate(sRule2);
         assertEquals(expResult, result);
+        
+        String sRule3 = "(травоядное|плотоядное,маленькое)|(тяжелое, высокое)";
+        expResult = 3;
+        result = instance.Calculate(sRule3);
+        assertEquals(expResult, result);
+
         
     }
     /**
@@ -159,25 +177,49 @@ public class JavaAnimalsTest {
         assertEquals(expResult, result);
 
     }
-    @Test
+    
+/*    @Test
     public void ReadAniFromStream() {
         System.out.println("ReadAniFromStream");
         boolean result=true;
         boolean expResult;
         JavaAnimals instance = new JavaAnimals();
         String sEtalon = "Правило: травоядное|плотоядное,маленькое Количество: 2 Правило: травоядное Количество: 4 Правило: всеядное,^высокое Количество: 2 Правило: злое Количество: 1 Правило: травоядное,желтое Количество: 1";
-        String sResult = instance.ReadAniFromStream("src\\javaanimals\\animals.txt","src\\javaanimals\\rules.txt");
+        String sResult = instance.ReadAniFromStream("test\\animals.txt","test\\rules.txt");
         System.out.println (sResult);
         assertEquals (sEtalon,sResult.trim());
     }
+*/
+    @Test
+    public void testdoNormalization (){
+    
+        System.out.println("doNormalization");
+        JavaAnimals instance = new JavaAnimals();
+        ArrayList result;
+        
+        String  aAttr = "(травоядное|плотоядное,маленькое)|(тяжелое, высокое)";
+        ArrayList expResult = new ArrayList();
+        expResult.add("травоядное|плотоядное,маленькое");
+        expResult.add("тяжелое, высокое");
+        
+        result = instance.doNormalization (aAttr);
+        assertEquals (expResult,result);
 
+        String  aAttr1 = "травоядное|плотоядное,маленькое";
+        ArrayList expResult1 = new ArrayList();
+        expResult1.add("травоядное|плотоядное,маленькое");
+        
+        result = instance.doNormalization (aAttr1);
+        assertEquals (expResult1,result);
+        
+    }
+            
     /**
      * Test of main method, of class JavaAnimals.
      */
-    @Test
     public void testMain() {
         System.out.println("main");
-        String[] args = {"src\\javaanimals\\animals.txt","src\\javaanimals\\rules.txt"};
+        String[] args = {"test\\animals.txt","test\\rules.txt"};
         JavaAnimals.main(args);
         // TODO review the generated test code and remove the default call to fail.
         //fail("The test case is a prototype.");
