@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package javaanimals;
 
 import java.io.*;
@@ -21,11 +16,23 @@ import java.util.regex.Pattern;
  */
 public class JavaAnimals {
     
-    public class cAnimal {
-     ArrayList <String> propAni = new ArrayList <String> ();    // динамический массив свойств одного животного
-    } 
     
-    ArrayList <cAnimal> cAnimals = new ArrayList <cAnimal> ();  // динамический массив всех животных
+    ArrayList <cAnimal> cAnimals;           // динамический массив всех животных
+    
+    Validator checker = new Validator();    // автомат проверки синтаксиса строк правила
+    
+    JavaAnimals (){
+        cAnimals = new ArrayList <> ();
+        // программа автомата проверки синтаксиса правил
+        checker.AddCondition(0, '(', 1, -1, false, false, "Ожидается открывающая скобка '('");
+        checker.AddCondition(1, (char)0x16, 2, 6, false, true, "");
+        checker.AddCondition(2, (char)0x16, 2, 3, false, true, "");
+        checker.AddCondition(3, ')', 0, 4, false, true, "");
+        checker.AddCondition(4, '|', 1, 5, false, true, "");
+        checker.AddCondition(5, ',', 1, -1, false, false, "Ожидается закрывающая скобка ')',или '|', или буква или цифра");
+        checker.AddCondition(6, '^', 1, -1, false, false, "Ожидается буква или цифра или знак отрицания '^");
+        
+    }
 
     /**
      * читает исходный файл с атрибутами животных и сохраняет его в коллекции
@@ -77,11 +84,14 @@ public class JavaAnimals {
             while(txtLine != null){
               System.out.println("Правило = " + txtLine); 
               
+              if (checker.IsRuleValid(txtLine)) {
               
-              int cnt; 
-              cnt = Calculate (txtLine);              // подсчет животных с нужными атрибутами
+                int cnt;  
+                cnt = Calculate (txtLine);              // подсчет животных с нужными атрибутами
               
-              System.out.println ("Количество=" + cnt);
+                System.out.println ("Количество=" + cnt);
+              }
+              else System.out.println("Синтаксическая ОШИБКА правила в позиции: " + checker.GetErrorPoition()+ " "+ checker.GetErrorMessage());
               txtLine = inputVar.readLine();          // читаем очередную строку с правилом 
             }
         } 
@@ -90,14 +100,24 @@ public class JavaAnimals {
         }
         
     }
+    
+    /**
+     * Проверяет строку на корректный синтаксис
+     * @param strRule - исходная строка с правилом
+     * @return true - если синтаксис верный
+     */
+    public boolean IsRuleValid (String strRule) {
+
+        return checker.IsRuleValid(strRule);
+        
+    }
     /**
      * подсчитывает количество животных в коллекции, удовлетворяющих правилу из aAttr
-     * @param txtRules - ненормализованное правило, состоящее из лексем вида: 
+     * @param txtRules - нормализованное правило, состоящее из лексем вида: 
      * (лексема1,лексема2,лексема3|лексема4)|(лексема5,^лексема6).....
-     * лексемы, перечисленные через запятую, являются конъюнкцией
-     * лексемы, перечисленные через знак "|", являются дизъюнкцией
-     * знак "^" перед лексемой - отрицание
-     * лексемы внутри скобок - "подправило", скобки соединяются в дизъюнкцию символом "|"
+     * лексемы, перечисленные через запятую внутри скобок, являются конъюнкцией
+     * знак "^" перед лексемой - отрицание (этого атрибута не должно быть у животного)
+     * лексемы внутри скобок - "подправило", скобки между собой являются дизъюнкцией
      * @return - cnt количество животных, удовлетворяющих входному правилу
      */
         int Calculate (String txtRules) {
@@ -124,7 +144,7 @@ public class JavaAnimals {
     
     /**
      * Нормализует входную строку.
-     * ищет скобки, разделенные знаком "|" или без него и представляет результирующую последовательность
+     * ищет парные скобки и представляет результирующую последовательность
      * в виде массива строк "подправил" без скобок.
      * @param inRule - входная строка
      * @return outSubRules - массив выходных строк "подправил"
@@ -154,7 +174,7 @@ public class JavaAnimals {
         return outSubRules;
     }
     /**
-     * Просматривает файл с животными и сразу ведет подсчет на основании файла с правилами
+     * Просматривает файл с животными и сразу "на лету" ведет подсчет на основании файла с правилами
      * @param sFileAni - файл с животными
      * @param sFileRules - файл с правилами
      */
@@ -211,41 +231,45 @@ public class JavaAnimals {
      *         false - если лексема не встречается ни в одном атрибуте
      */
     boolean ExecuteRule (String sRule, cAnimal selectedAnimal){
-        boolean isExist=false;
-            for (String propAni : selectedAnimal.propAni) {
-                if (sRule.indexOf("^")==0){ //если лексема отрицание
-                    String str;
-                    str = sRule.substring(1);
-                    if (!str.contains(propAni)) isExist=true;
-                }
-                else if (sRule.contains(propAni)){
-                    isExist=true;
-                }
-        }
-        return isExist;
+        boolean isExist;
+        
+                isExist = ExecuteRule (sRule,selectedAnimal.propAni.toArray(new String [0]));
+        
+        return  isExist;
     }
     /**
      * Поиск лексемы в атрибутах конкретного животного
-     * @param sRule - текущая лексема текущего правила
+     * @param sLexem - текущая лексема текущего правила
      * @param selectedAnimal - массив с атрибутами животного
      * @return  tue - если лексема встречается в атрибутах животного, 
      *          false - если лексема не встречается ни в одном атрибуте
      */
-    boolean ExecuteRule (String sRule, String[] selectedAnimal){
+    boolean ExecuteRule (String sLexem, String[] selectedAnimal){
         boolean isExist=false;
+        String str = sLexem.trim();
             for (String propAni : selectedAnimal) {
-                if (sRule.indexOf("^")==0){ //если лексема отрицание
-                    String str;
-                    str = sRule.substring(1);
-                    if (!str.contains(propAni)) isExist=true;
+                // перебираем все атрибуты животного
+                if (str.indexOf("^")==0){ //если лексема отрицание
+                
+                    isExist = str.substring(1).contains(propAni);
+                    if (isExist) 
+                        // содержит атрибут, которого не должно быть, дальше не смотрим
+                        return !isExist;
+                    else
+                        // атрибут не совпал - смотрим дальше
+                        isExist = true;
                 }
-                else if (sRule.contains(propAni)){
-                    isExist=true;
+                else {
+                    isExist = str.contains(propAni);
+                    if (isExist) 
+                        // содержит нужный атрибут, дальше не смотрим
+                        return isExist;
                 }
-        }
-        return isExist;
+            }
+            return isExist;
     }
-    /**
+    
+   /**
      * выводит всю коллекцию на экран
      */
     void DisplayAll (ArrayList <cAnimal> cAni){
@@ -255,7 +279,6 @@ public class JavaAnimals {
         }
     }
         void Display (cAnimal cAni){
-//           System.out.println("----------------");
            for (int j=0;j<cAni.propAni.size();j++){
                System.out.print(cAni.propAni.get(j)+" ");
            }
