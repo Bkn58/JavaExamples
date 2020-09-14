@@ -52,7 +52,7 @@ public class JavaAnimalsTest {
     @Test
     public void testReadAllAnimals() {
         System.out.println("ReadAllAnimals");
-        String sFile = "src\\javaanimals\\animals.txt";
+        String sFile = "test\\animals.txt";
         JavaAnimals instance = new JavaAnimals();
         instance.ReadAllAnimals(sFile);
         // TODO review the generated test code and remove the default call to fail.
@@ -85,7 +85,7 @@ public class JavaAnimalsTest {
         int result;
         int expResult;
              
-        String sRule = "травоядное|плотоядное,маленькое";
+        String sRule = "(травоядное|плотоядное,маленькое)";
               // записываем атрибуты животных в динамический массив
         String [] aAttr = {"курица", "травоядное", "маленькое", "легкое"}; 
         instance.InsertIntoCollection(aAttr);
@@ -108,19 +108,24 @@ public class JavaAnimalsTest {
         result = instance.Calculate(sRule);
         assertEquals(expResult, result);
 
-        String sRule1 = "травоядное";
+        String sRule1 = "(травоядное)";
         expResult = 4;
         result = instance.Calculate(sRule1);
         assertEquals(expResult, result);
 
-        String sRule2 = "всеядное,^высокое";
+        String sRule2 = "(всеядное,^высокое)";
         expResult = 2;
         result = instance.Calculate(sRule2);
         assertEquals(expResult, result);
         
-        String sRule3 = "(травоядное|плотоядное,маленькое)|(тяжелое, высокое)";
+        String sRule3 = "(травоядное|плотоядное,маленькое)(тяжелое, высокое)";
         expResult = 3;
         result = instance.Calculate(sRule3);
+        assertEquals(expResult, result);
+
+        String sRule4 = "(^высокое)";
+        expResult = 7;
+        result = instance.Calculate(sRule4);
         assertEquals(expResult, result);
 
         
@@ -131,14 +136,13 @@ public class JavaAnimalsTest {
     @Test
     public void testExecuteRule() {
         System.out.println("ExecuteRule");
-        boolean result=true;
+        boolean result;
         boolean expResult;
         String [] aAttr = {"курица", "травоядное", "маленькое", "легкое"}; 
         JavaAnimals instance = new JavaAnimals();
              
         String sRule = "маленькое";
         instance.InsertIntoCollection(aAttr);
-        instance.DisplayAll(instance.cAnimals);
         expResult = true;
         result = instance.ExecuteRule(sRule, instance.cAnimals.get(0));
         assertEquals(expResult, result);
@@ -157,16 +161,6 @@ public class JavaAnimalsTest {
         assertEquals(expResult, result);
 
         instance.cAnimals.clear();
-        sRule = "^высокое";
-        instance.InsertIntoCollection(aAttr);
-        expResult = true;
-        result = instance.ExecuteRule(sRule, instance.cAnimals.get(0));
-        assertEquals(expResult, result);
-        
-        result = instance.ExecuteRule(sRule, aAttr);
-        assertEquals(expResult, result);
-
-        instance.cAnimals.clear();
         sRule = "травоядное|плотоядное";
         instance.InsertIntoCollection(aAttr);
         expResult = true;
@@ -176,6 +170,18 @@ public class JavaAnimalsTest {
         result = instance.ExecuteRule(sRule, aAttr);
         assertEquals(expResult, result);
 
+
+        instance.cAnimals.clear();
+        sRule = "^невысокое";
+        instance.InsertIntoCollection(aAttr);
+        instance.DisplayAll(instance.cAnimals);
+        expResult = true;
+        result = instance.ExecuteRule(sRule, aAttr);
+        assertEquals(expResult, result);
+        
+        result = instance.ExecuteRule(sRule, instance.cAnimals.get(0));
+        assertEquals(expResult, result);
+        
     }
     
 /*    @Test
@@ -197,7 +203,7 @@ public class JavaAnimalsTest {
         JavaAnimals instance = new JavaAnimals();
         ArrayList result;
         
-        String  aAttr = "(травоядное|плотоядное,маленькое)|(тяжелое, высокое)";
+        String  aAttr = "(травоядное|плотоядное,маленькое)(тяжелое, высокое)";
         ArrayList expResult = new ArrayList();
         expResult.add("травоядное|плотоядное,маленькое");
         expResult.add("тяжелое, высокое");
@@ -205,7 +211,7 @@ public class JavaAnimalsTest {
         result = instance.doNormalization (aAttr);
         assertEquals (expResult,result);
 
-        String  aAttr1 = "травоядное|плотоядное,маленькое";
+        String  aAttr1 = "(травоядное|плотоядное,маленькое)";
         ArrayList expResult1 = new ArrayList();
         expResult1.add("травоядное|плотоядное,маленькое");
         
@@ -213,16 +219,17 @@ public class JavaAnimalsTest {
         assertEquals (expResult1,result);
         
     }
-            
-    /**
-     * Test of main method, of class JavaAnimals.
-     */
-    public void testMain() {
-        System.out.println("main");
-        String[] args = {"test\\animals.txt","test\\rules.txt"};
-        JavaAnimals.main(args);
-        // TODO review the generated test code and remove the default call to fail.
-        //fail("The test case is a prototype.");
+    
+    @Test
+    public void testIsRuleValid () {
+        System.out.println("IsRuleValid");
+        JavaAnimals instance = new JavaAnimals();
+        boolean result;
+        
+        String  aAttr = "(травоядное|плотоядное,маленькое)(тяжелое, высокое)";
+        result = instance.IsRuleValid(aAttr);
+        assertEquals (true,result);
     }
+            
     
 }
