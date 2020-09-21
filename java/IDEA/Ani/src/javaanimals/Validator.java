@@ -14,8 +14,18 @@ public class Validator {
     private String errorMsg;                                        // сообщение об ошибке
     private int curErrorPosition;                                   // позиция в строке, где произошла ошибка
     
-    void Validator (){
+    public Validator() {
+
         numCurState = 0;
+        // программа автомата проверки синтаксиса правил
+        AddCondition(0, '(', 1, -1, false, false, "Ожидается открывающая скобка '('");
+        AddCondition(1, (char)0x16, 2, 6, false, true, "");
+        AddCondition(2, (char)0x16, 2, 3, false, true, "");
+        AddCondition(3, ')', 0, 4, false, true, "");
+        AddCondition(4, '|', 1, 5, false, true, "");
+        AddCondition(5, ',', 1, -1, false, false, "Ожидается закрывающая скобка ')',или '|', или буква или цифра");
+        AddCondition(6, '^', 1, -1, false, false, "Ожидается буква или цифра или знак отрицания '^");
+
     }
     
     int GetErrorPosition (){
