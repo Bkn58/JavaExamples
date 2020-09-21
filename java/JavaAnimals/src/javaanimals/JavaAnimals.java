@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  *
  * @author Bkn
  */
-public class JavaAnimals {
+public class JavaAnimals implements ReadFromStream {
     
     
     ArrayList <cAnimal> cAnimals;           // динамический массив всех животных
@@ -177,8 +177,10 @@ public class JavaAnimals {
      * Просматривает файл с животными и сразу "на лету" ведет подсчет на основании файла с правилами
      * @param sFileAni - файл с животными
      * @param sFileRules - файл с правилами
+     * @return 
      */
-        String ReadAniFromStream (String sFileAni, String sFileRules){
+    @Override
+        public String ReadAniFromStream (String sFileAni, String sFileRules){
             BufferedReader inputAnimals = null;
             BufferedReader inputRules = null;
             String sOut = "";
@@ -290,7 +292,7 @@ public class JavaAnimals {
      * args[1] - файл с правилами (одна строка - одно правило, лексемы внутри строки разделяются запятыми)
      */
     public static void main(String[] args) {
-       if(args.length==0) System.out.println ("Задайте имя входного файла и имя файла с правилпми");
+       if(args.length==0) System.out.println ("Задайте имя входного файла и имя файла с правилами");
        else {
            JavaAnimals cAnimal = new JavaAnimals ();
             cAnimal.ReadAllAnimals (args[0]);   // чтение коллекции животных
@@ -303,8 +305,9 @@ public class JavaAnimals {
            }
             
 
-            
-//            System.out.println (cAnimal.ReadAniFromStream (args[0],args[1])); // чтение из потока животных без записи в коллекцию и подсчет правил "на лету"
+      ReadFromStream readAni= new JavaAnimals ();
+      System.out.println (readAni.ReadAniFromStream(args[0],args[1]));
+            System.out.println (cAnimal.ReadAniFromStream (args[0],args[1])); // чтение из потока животных без записи в коллекцию и подсчет правил "на лету"
        }
     }
     
