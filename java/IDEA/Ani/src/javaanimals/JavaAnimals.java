@@ -23,15 +23,6 @@ public class JavaAnimals implements ReadFromStream {
     
     JavaAnimals (){
         cAnimals = new ArrayList <> ();
-        // программа автомата проверки синтаксиса правил
-        checker.AddCondition(0, '(', 1, -1, false, false, "Ожидается открывающая скобка '('");
-        checker.AddCondition(1, (char)0x16, 2, 6, false, true, "");
-        checker.AddCondition(2, (char)0x16, 2, 3, false, true, "");
-        checker.AddCondition(3, ')', 0, 4, false, true, "");
-        checker.AddCondition(4, '|', 1, 5, false, true, "");
-        checker.AddCondition(5, ',', 1, -1, false, false, "Ожидается закрывающая скобка ')',или '|', или буква или цифра");
-        checker.AddCondition(6, '^', 1, -1, false, false, "Ожидается буква или цифра или знак отрицания '^");
-        
     }
 
     /**
