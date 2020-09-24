@@ -6,7 +6,7 @@ package javaanimals;
  */
 
 /**
- * состояние автомата
+ * состояние автомата Validator
  */
 public class State {
 

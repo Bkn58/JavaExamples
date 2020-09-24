@@ -122,5 +122,5 @@ ZUP/
 java/JavaAnimals/TZ.docx
 java/JavaAnimals/lib/
 java/JavaAnimals/nbproject/
-
-
+*.iml
+*.xml
