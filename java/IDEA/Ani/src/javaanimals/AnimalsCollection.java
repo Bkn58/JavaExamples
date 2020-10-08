@@ -107,12 +107,13 @@ public class AnimalsCollection extends JavaAnimals implements ReadAndExecute{
         ArrayList ArrayRules = doNormalization (txtRules);
         for (cAnimal selectedAnimal : cAnimals) {                       // перебираем всех животных из коллекции
             boolean isAttrExist=false;
-            for (int i=0;i<ArrayRules.size();i++) {                     // выбираем нормализованное "подправило" без скобок
-                String sRule = (String)ArrayRules.get(i);
-                String [] aAttr = sRule.split(",");                   // получаем из "подправила" массив лексем, необходимых для выборки животных
+            for (Object arrayRule : ArrayRules) {                     // выбираем нормализованное "подправило" без скобок
+                String sRule = (String) arrayRule;
+                String[] aAttr = sRule.split(",");                   // получаем из "подправила" массив лексем, необходимых для выборки животных
                 for (String sAttr : aAttr) {
                     isAttrExist = ExecuteRule(sAttr, selectedAnimal);   // сравнение очередной лексемы с атрибутами животного
-                    if (!isAttrExist) break;                            // если лексемы нет среди атрибутов - прекращаем просмотр других лексем этого "подправила"
+                    if (!isAttrExist)
+                        break;                            // если лексемы нет среди атрибутов - прекращаем просмотр других лексем этого "подправила"
                 }
                 if (isAttrExist) {
                     cnt++;

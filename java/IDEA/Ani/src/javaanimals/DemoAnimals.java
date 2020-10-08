@@ -17,6 +17,7 @@ public class DemoAnimals {
             AnimalsStream  cAmimallstr = new AnimalsStream();
             System.out.println(cAmimallstr.ReadAndExecute(args[0],args[1]));
 
+            /* то же, но с использованием паттерна "стратегия" */
             ContextCalc context = new ContextCalc();
 
             /* стратегия подсчета через коллекцию животных с использованием паттерна "Стратегия"*/
