@@ -73,7 +73,7 @@ public class AnimalsCollectionTest {
         result = ex.Calculate(sRule5);
         assertEquals(expResult, result);
 
-        String sRule6 = "(^высокое)";
+        String sRule6 = "(^высокое)(невысокое|маленькое)";
         expResult = 7;
         result = ex.Calculate(sRule6);
         assertEquals(expResult, result);

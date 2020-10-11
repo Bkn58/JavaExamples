@@ -39,8 +39,8 @@ public class JavaAnimals {
      * @return outSubRules - массив выходных строк "подправил"
      */
     
-    ArrayList doNormalization (String inRule) {
-        ArrayList outSubRules = new ArrayList();
+    ArrayList <String>  doNormalization (String inRule) {
+        ArrayList <String> outSubRules = new ArrayList <String> ();
         
                 String strPattern = "[(].+?[)]";
                 boolean hasBrackets = inRule.matches(strPattern);
@@ -62,6 +62,21 @@ public class JavaAnimals {
         
         return outSubRules;
     }
+
+    /**
+     * Разбиение лексемы, имеющей символ "или" - "|", на атомарные лексемы
+     * @param inRule
+     * @return outSubRules - массив атомарных лексем
+     */
+    String[] doSplit (String inRule) {
+        String [] outSubRules;
+
+        outSubRules = inRule.split("\\|");
+
+
+        return outSubRules;
+    }
+
     /**
      * Поиск лексемы в атрибутах конкретного животного
      * @param sLexem - текущая лексема текущего правила

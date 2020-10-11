@@ -86,4 +86,13 @@ public class JavaAnimalsTest {
         assertEquals(expResult, result);
 
     }
+
+    @org.junit.Test
+    public void doSplit () {
+        JavaAnimals instance = new JavaAnimals();
+        String[] expSubRules = {"маленькое","невысокое"};
+
+        String[] resSubRules = instance.doSplit("маленькое|невысокое");
+        assertEquals(expSubRules,resSubRules);
+    }
 }

@@ -7,6 +7,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -99,27 +100,32 @@ public class AnimalsCollection extends JavaAnimals implements ReadAndExecute{
      * лексемы внутри скобок - "подправило", скобки между собой являются дизъюнкцией
      * @return - cnt количество животных, удовлетворяющих входному правилу
      */
-    int Calculate (String txtRules) {
+    int CalculateOld (String txtRules) {
         int cnt=0;
-        ArrayList ArrayRules = doNormalization(txtRules);
+        ArrayList <String> ArrayRules = doNormalization(txtRules);
         for (cAnimal selectedAnimal : cAnimals) {                       // перебираем всех животных из коллекции
-            boolean isAttrExist=false;
-            for (Object arrayRule : ArrayRules) {                     // перебираем нормализованные "подправила" без скобок
+            for (Object arrayRule : ArrayRules) {                       // перебираем нормализованные "подправила" без скобок
                 String sRule = (String) arrayRule;
                 String[] aAttr = sRule.split(",");                   // получаем из "подправила" массив лексем, необходимых для выборки животных
-                for (String sAttr : aAttr) {
-                    isAttrExist = selectedAnimal.isRuleMatch(sAttr);   // сравнение очередной лексемы с атрибутами животного
-                    if (!isAttrExist)
-                        break;                            // если лексемы нет среди атрибутов животного - прекращаем просмотр других лексем этого "подправила"
-                }
-                if (isAttrExist) {
+                if (Arrays.stream(aAttr)
+                        .allMatch(sAttr -> selectedAnimal.isRuleMatch(sAttr))) {
                     cnt++;
-                    break;                                              // совпали все лексемы хотя бы из одного подправила
+                    break;
                 }
             }
         }
         return cnt;
     }
+    int Calculate (String txtRules) {
+        ArrayList <String> ArrayRules = doNormalization(txtRules);
+        int cnt = (int)cAnimals.stream()                                                                    // перебираем всех животных из коллекции
+                          .filter(selectedAnimal->
+                            ArrayRules.stream()                                                             // перебираем нормализованные "подправила" без скобок
+                                    .anyMatch(arrayRule-> selectedAnimal.isRuleMatch((String)arrayRule)))   // проверяем "подправила"
+                         .count();
+        return cnt;
+    }
+
     /**
      * Поиск лексемы в атрибутах конкретного животного
      * @param sRule - текущая лексема текущего правила

@@ -7,7 +7,7 @@ import static org.junit.Assert.*;
 public class cAnimalTest {
 
     @Test
-    public void executeRule() {
+    public void isRuleMatch() {
         cAnimal ex = new cAnimal();
         ex.propAni.add("курица");
         ex.propAni.add("травоядное");
@@ -17,4 +17,5 @@ public class cAnimalTest {
         boolean expResult = true;
         assertEquals(expResult, result);
     }
+
 }
