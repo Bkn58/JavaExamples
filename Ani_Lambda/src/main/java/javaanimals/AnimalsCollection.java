@@ -2,12 +2,12 @@ package javaanimals;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,7 +33,7 @@ public class AnimalsCollection extends JavaAnimals implements ReadAndExecute{
 
         System.out.println(sFile);
         File fIn = new File(sFile);
-        try (BufferedReader inputVar = Files.newBufferedReader(fIn.toPath(), Charset.forName("Cp1251"));)
+        try (BufferedReader inputVar = Files.newBufferedReader(fIn.toPath(), Charset.forName("Cp1251")))
         {txtLine = inputVar.readLine();
             while(txtLine != null){
                 String [] aAttr = txtLine.split(","); // получаем массив атрибутов одного животного
@@ -41,8 +41,6 @@ public class AnimalsCollection extends JavaAnimals implements ReadAndExecute{
                 InsertIntoCollection (aAttr);         // записываем атрибуты животного в динамический массив
                 txtLine = inputVar.readLine();
             }
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(JavaAnimals.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(JavaAnimals.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -68,13 +66,13 @@ public class AnimalsCollection extends JavaAnimals implements ReadAndExecute{
      */
     public String ReadRules (BufferedReader inputVar){
         String txtLine;
-        String sOut = "";
+        StringBuilder sOut = new StringBuilder();
         try {
 
             txtLine = inputVar.readLine();             // читаем очередную строку с правилом
             while(txtLine != null){
 //                System.out.println("Правило = " + txtLine);
-                sOut = sOut + "Правило: " + txtLine;
+                sOut.append("Правило: ").append(txtLine);
 
                 if (checker.IsRuleValid(txtLine)) {
 
@@ -82,7 +80,7 @@ public class AnimalsCollection extends JavaAnimals implements ReadAndExecute{
                     cnt = Calculate (txtLine);              // подсчет животных с нужными атрибутами
 
 //                    System.out.println ("Количество=" + cnt);
-                    sOut = sOut + " Количество: " + cnt + " ";
+                    sOut.append(" Количество: ").append(cnt).append(" ");
                 }
                 else System.out.println("Синтаксическая ОШИБКА правила в позиции: " + checker.GetErrorPosition()+ " "+ checker.GetErrorMessage());
                 txtLine = inputVar.readLine();          // читаем очередную строку с правилом
@@ -91,7 +89,7 @@ public class AnimalsCollection extends JavaAnimals implements ReadAndExecute{
         catch (IOException ex) {
             Logger.getLogger(JavaAnimals.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return sOut;
+        return sOut.toString();
     }
     /**
      * подсчитывает количество животных в коллекции, удовлетворяющих правилу из aAttr
@@ -102,27 +100,32 @@ public class AnimalsCollection extends JavaAnimals implements ReadAndExecute{
      * лексемы внутри скобок - "подправило", скобки между собой являются дизъюнкцией
      * @return - cnt количество животных, удовлетворяющих входному правилу
      */
-    int Calculate (String txtRules) {
+    int CalculateOld (String txtRules) {
         int cnt=0;
-        ArrayList ArrayRules = doNormalization (txtRules);
+        ArrayList <String> ArrayRules = doNormalization(txtRules);
         for (cAnimal selectedAnimal : cAnimals) {                       // перебираем всех животных из коллекции
-            boolean isAttrExist=false;
-            for (Object arrayRule : ArrayRules) {                     // выбираем нормализованное "подправило" без скобок
+            for (Object arrayRule : ArrayRules) {                       // перебираем нормализованные "подправила" без скобок
                 String sRule = (String) arrayRule;
                 String[] aAttr = sRule.split(",");                   // получаем из "подправила" массив лексем, необходимых для выборки животных
-                for (String sAttr : aAttr) {
-                    isAttrExist = ExecuteRule(sAttr, selectedAnimal);   // сравнение очередной лексемы с атрибутами животного
-                    if (!isAttrExist)
-                        break;                            // если лексемы нет среди атрибутов - прекращаем просмотр других лексем этого "подправила"
-                }
-                if (isAttrExist) {
+                if (Arrays.stream(aAttr)
+                        .allMatch(sAttr -> selectedAnimal.isRuleMatch(sAttr))) {
                     cnt++;
-                    break;                                              // совпали все лексемы хотя бы из одного подправила
+                    break;
                 }
             }
         }
         return cnt;
     }
+    int Calculate (String txtRules) {
+        ArrayList <String> ArrayRules = doNormalization(txtRules);
+        int cnt = (int)cAnimals.stream()                                                                    // перебираем всех животных из коллекции
+                          .filter(selectedAnimal->
+                            ArrayRules.stream()                                                             // перебираем нормализованные "подправила" без скобок
+                                    .anyMatch(arrayRule-> selectedAnimal.isRuleMatch((String)arrayRule)))   // проверяем "подправила"
+                         .count();
+        return cnt;
+    }
+
     /**
      * Поиск лексемы в атрибутах конкретного животного
      * @param sRule - текущая лексема текущего правила
@@ -133,7 +136,7 @@ public class AnimalsCollection extends JavaAnimals implements ReadAndExecute{
     boolean ExecuteRule (String sRule, cAnimal selectedAnimal){
         boolean isExist;
 
-        isExist = ExecuteRule (sRule,selectedAnimal.propAni.toArray(new String [0]));
+        isExist = selectedAnimal.isRuleMatch(sRule);
 
         return  isExist;
     }
